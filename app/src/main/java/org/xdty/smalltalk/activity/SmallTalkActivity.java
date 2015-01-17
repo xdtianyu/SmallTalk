@@ -1,12 +1,14 @@
-package org.xdty.smalltalk;
+package org.xdty.smalltalk.activity;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import org.xdty.smalltalk.R;
 
-public class MainActivity extends ActionBarActivity {
+
+public class SmallTalkActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
