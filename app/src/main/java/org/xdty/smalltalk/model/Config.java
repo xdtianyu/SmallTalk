@@ -13,10 +13,10 @@ public class Config {
     
     
     /* DEFAULTS */
-    public final static String USERNAME_DEFAULT = "";
+    public final static String USERNAME_DEFAULT = "10000";
     
-    public final static String PASSWORD_DEFAULT = "";
+    public final static String PASSWORD_DEFAULT = "123456";
     
-    public final static String SERVER_URI_DEFAULT = "";
+    public final static String SERVER_URI_DEFAULT = "192.168.4.134";
     
 }

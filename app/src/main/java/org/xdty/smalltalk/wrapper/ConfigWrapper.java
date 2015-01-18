@@ -47,7 +47,7 @@ public class ConfigWrapper {
         prefs = context.getApplicationContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
     
-    public ConfigWrapper Instance() {
+    public static ConfigWrapper Instance() {
 
         if (prefs==null) {
             throwPrefsError(Error.PREFS_IS_NULL);
