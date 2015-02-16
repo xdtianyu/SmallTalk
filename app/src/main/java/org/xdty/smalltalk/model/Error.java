@@ -9,4 +9,6 @@ public class Error {
     public final static String PREFS_IS_INITIALIZED = "prefs have been initialized";
     public final static String PREFS_IS_EDITING = "prefs is editing";
     public final static String PREFS_IS_NOT_EDITING = "prefs is not editing, did you call \"startEditing()\" first?";
+    
+    public final static String BIND_SERVICE_TIMEOUT = "Bind service timeout!";
 }

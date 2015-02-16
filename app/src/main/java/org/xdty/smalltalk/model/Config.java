@@ -17,6 +17,6 @@ public class Config {
     
     public final static String PASSWORD_DEFAULT = "123456";
     
-    public final static String SERVER_URI_DEFAULT = "192.168.4.134";
+    public final static String SERVER_URI_DEFAULT = "xdty.org";
     
 }

@@ -18,6 +18,7 @@ import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.xdty.smalltalk.model.Config;
+import org.xdty.smalltalk.model.InstantMessage;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -44,7 +45,8 @@ public class XMPPWrapper implements Runnable{
     private final static int MAX_COUNT = 30;
     
     private final static int MESSAGE_CONNECT = 1;
-
+    
+    private Callback mCallback;
 
     private ArrayDeque<String> queue;
     
@@ -58,7 +60,10 @@ public class XMPPWrapper implements Runnable{
 
         connection = new XMPPTCPConnection(configuration);
         
-        queue = new ArrayDeque<String>();
+        queue = new ArrayDeque<>();
+
+        Thread thread = new Thread(this);
+        thread.start();
         
     }
     
@@ -71,8 +76,6 @@ public class XMPPWrapper implements Runnable{
     
     public void connect() {
         queue.addLast(QueueMessage.CONNECT);
-        Thread thread = new Thread(this);
-        thread.start();
     }
     
     Handler mHandler = new Handler() {
@@ -102,7 +105,7 @@ public class XMPPWrapper implements Runnable{
                     Log.d(TAG, "connecting...");
 
                     try {
-                        
+                                     
                         connection.connect();
                         
                         int sleepCount = 0;
@@ -112,11 +115,13 @@ public class XMPPWrapper implements Runnable{
                             sleepCount++;
                         }
                         
-                        connection.login(mUser, mPassword);
                         connection.addConnectionListener(connectionListener);
                         connection.addPacketListener(packetListener, packetFilter);
                         ChatManager chatManager = ChatManager.getInstanceFor(connection);
                         chatManager.addChatListener(chatManagerListener);
+                        
+                        connection.login(mUser, mPassword);
+
                         // TODO: chatManager need to check.
                     } catch (SmackException e) {
                         e.printStackTrace();
@@ -205,6 +210,16 @@ public class XMPPWrapper implements Runnable{
         @Override
         public void processMessage(Chat chat, org.jivesoftware.smack.packet.Message message) {
             Log.d(TAG, "processMessage: " + message.toString());
+            
+            InstantMessage msg = new InstantMessage();
+            msg.from = message.getFrom();
+            msg.to = message.getTo();
+            msg.body = message.getBody();
+            msg.received_timestamp = System.currentTimeMillis();
+            
+            if (mCallback!=null) {
+                mCallback.OnMessage(msg);
+            }
         }
     };
     
@@ -215,4 +230,14 @@ public class XMPPWrapper implements Runnable{
         
     }
     
+    public interface Callback {
+        
+        public void OnMessage(InstantMessage message);
+        
+    }
+    
+    public void setCallback(Callback callback) {
+        mCallback = callback;
+    }
+
 }
