@@ -12,6 +12,7 @@ import org.jivesoftware.smack.SmackAndroid;
 import org.xdty.smalltalk.model.Config;
 import org.xdty.smalltalk.model.InstantMessage;
 import org.xdty.smalltalk.wrapper.ConfigWrapper;
+import org.xdty.smalltalk.wrapper.HttpWrapper;
 import org.xdty.smalltalk.wrapper.XMPPWrapper;
 
 import java.lang.ref.WeakReference;
@@ -108,6 +109,10 @@ public class SmallTalkService extends Service implements
     public void isConnected() {
 
         
+    }
+    
+    public void reportCrash(String message) {
+        HttpWrapper.Instance().reportCrash(message);
     }
     
     public void sendMessage(String message) {

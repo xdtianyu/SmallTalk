@@ -19,4 +19,8 @@ public class Config {
     
     public final static String SERVER_URI_DEFAULT = "xdty.org";
     
+    public final static String CRASH_REPORTER_URI = "https://www.xdty.org/mail_extra.php";
+    
+    public final static String CRASH_RECEIVER = "crash.helper@gmail.com";
+    
 }

@@ -7,5 +7,23 @@
     <string name="title">Title</string>
     <string name="message_hint">Messaging...</string>
     <string name="empty_message">message is empty.</string>
+    
+    <!-- crash dialog -->
+    <string name="message_crash">Exception <b>\"%1$s\"</b> has been successfully caught!\n</string>
+    <string name="message_crash_case">Exception <b>\"%1$s\"</b> (caused by <b>\"%2$s\"</b>) has been successfully caught!\n</string>
 
+    <string-array name="message_mem">
+        <item>All your base are belong to us</item>
+        <item>I\'m sorry Dave, I\'m afraid I can\'t do that</item>
+        <item>Resistance is futile</item>
+        <item>Technically I was never alive, but I appreciate your concern</item>
+        <item>What do you want?</item>
+        <item>By your command</item>
+    </string-array>
+
+    <string name="button_report">Report It!</string>
+    <string name="button_close">Close</string>
+    <string name="text_send_report_hint">Press <b>\"Report It!\"</b> to see the stuff</string>
+    <string name="text_crash_title">Crash Caught</string>
+    <string name="button_ignore">Ignore</string>
 </resources>

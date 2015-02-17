@@ -1,9 +1,12 @@
 package org.xdty.smalltalk.activity;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
@@ -22,11 +25,17 @@ import org.xdty.smalltalk.service.SmallTalkService.SmallTalkServiceBinder;
 
 public class SmallTalkActivity extends FragmentActivity {
     
+    public final static String TAG = "SmallTalkActivity";
+    
     private SmallTalkService smallTalkService;
     
     private ViewPager viewPager;
     
     private SmallTalkPageAdapter smallTalkPageAdapter;
+
+    public static final String FINISH_FILTER = "org.xdty.smalltalk.FINISH_FILTER";
+
+    private BroadcastReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,13 +45,35 @@ public class SmallTalkActivity extends FragmentActivity {
         // start main service
         Intent intent = new Intent(SmallTalkActivity.this, SmallTalkService.class);
         startService(intent);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(FINISH_FILTER);
+
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context con, Intent intent) {
+                if (intent.getAction().equals(FINISH_FILTER)) {
+                    stopService(new Intent(SmallTalkActivity.this, SmallTalkService.class));
+                    finish();
+                    (new ExitTask()).execute();
+                }
+            }
+        };
+
+        registerReceiver(receiver, filter);
         
         // bind fragment
         viewPager = (ViewPager)findViewById(R.id.viewpager);
         smallTalkPageAdapter = new SmallTalkPageAdapter(getSupportFragmentManager());
         viewPager.setAdapter(smallTalkPageAdapter);
     }
-    
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(receiver);
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -127,6 +158,26 @@ public class SmallTalkActivity extends FragmentActivity {
         @Override
         public int getCount() {
             return PAGE_COUNT;
+        }
+    }
+    
+    private class ExitTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            System.exit(0);
         }
     }
 }

@@ -63,6 +63,7 @@ public class MessageFragment extends Fragment implements
             @Override
             public void onClick(View v) {
                 (new MessageTask()).execute(MessageTask.SEND_MESSAGE);
+                throw new RuntimeException("test");
             }
         });
         

@@ -6,4 +6,11 @@
     <string name="title">标题</string>
     <string name="message_hint">发送消息...</string>
     <string name="empty_message">消息为空</string>
+    <string name="button_close">关闭</string>
+    <string name="button_ignore">忽略</string>
+    <string name="button_report">报告!</string>
+    <string name="message_crash">异常 <b>\"%1$s\"</b> 已被成功捕获!\n </string>
+    <string name="message_crash_case">异常 <b>\"%1$s\"</b> (由 <b>\"%2$s\"</b>引起) 已被成功捕获!\n</string>
+    <string name="text_crash_title">捕获到异常</string>
+    <string name="text_send_report_hint">点击 <b>\"报告!\"</b> 提交报告到服务器</string>
 </resources>
