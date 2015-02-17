@@ -10,6 +10,8 @@ import android.widget.TextView;
 import org.xdty.smalltalk.R;
 import org.xdty.smalltalk.model.InstantMessage;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -21,6 +23,8 @@ public class MessageAdapter extends ArrayAdapter<InstantMessage> {
     private int resource_left;
     private int resource_right;
     private List<InstantMessage> messageList;
+
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     
     private LayoutInflater mInflater;
     
@@ -64,7 +68,8 @@ public class MessageAdapter extends ArrayAdapter<InstantMessage> {
 
         senderText.setText(message.from);
         messageText.setText(message.body);
-        dateText.setText(Long.toString(message.timestamp));
+        
+        dateText.setText(dateFormat.format(new Date(message.timestamp)));
         
         return convertView;
     }

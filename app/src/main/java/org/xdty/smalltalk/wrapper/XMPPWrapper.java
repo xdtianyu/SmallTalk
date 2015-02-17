@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import org.apache.harmony.javax.security.sasl.SaslException;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.ChatManagerListener;
@@ -22,6 +23,7 @@ import org.xdty.smalltalk.model.InstantMessage;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.HashMap;
 
 /**
  * Created by ty on 15-1-17.
@@ -48,7 +50,13 @@ public class XMPPWrapper implements Runnable{
     
     private Callback mCallback;
 
-    private ArrayDeque<String> queue;
+    private ArrayDeque<Integer> queue;
+    
+    private ArrayDeque<InstantMessage> messageQueue;
+    
+    private Thread thread;
+    
+    private HashMap<String, String> chatMap;
     
     private XMPPWrapper() {
         mServer = ConfigWrapper.Instance().getString(Config.SERVER_URI);
@@ -61,8 +69,11 @@ public class XMPPWrapper implements Runnable{
         connection = new XMPPTCPConnection(configuration);
         
         queue = new ArrayDeque<>();
+        messageQueue = new ArrayDeque<>();
 
-        Thread thread = new Thread(this);
+        chatMap = new HashMap<>();
+
+        thread = new Thread(this);
         thread.start();
         
     }
@@ -91,56 +102,91 @@ public class XMPPWrapper implements Runnable{
             super.handleMessage(msg);
         }
     };
+    
+    public void sendMessage(InstantMessage message) {
+        messageQueue.add(message);
+        queue.add(QueueMessage.SEND_MESSAGE);
+        thread.interrupt();
+    }
 
     public void run() {
         
-
-        String message;
+        boolean exitFlag = false;
         
-        while (true) {
+        int message;
+        
+        while (!exitFlag) {
             if (!queue.isEmpty()) {
                 message = queue.pop();
                 
-                if (message.equalsIgnoreCase(QueueMessage.CONNECT)) {
-                    Log.d(TAG, "connecting...");
+                switch (message) {
+                    case QueueMessage.CONNECT:
+                        Log.d(TAG, "connecting...");
 
-                    try {
-                                     
-                        connection.connect();
-                        
-                        int sleepCount = 0;
+                        try {
 
-                        while (!connection.isConnected() && sleepCount<MAX_COUNT) {
-                            Thread.sleep(200);
-                            sleepCount++;
+                            connection.connect();
+
+                            int sleepCount = 0;
+
+                            while (!connection.isConnected() && sleepCount<MAX_COUNT) {
+                                Thread.sleep(200);
+                                sleepCount++;
+                            }
+
+                            connection.addConnectionListener(connectionListener);
+                            connection.addPacketListener(packetListener, packetFilter);
+                            ChatManager chatManager = ChatManager.getInstanceFor(connection);
+                            chatManager.addChatListener(chatManagerListener);
+
+                            connection.login(mUser, mPassword);
+
+                            // TODO: chatManager need to check.
+                        } catch (SmackException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (SaslException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (XMPPException e) {
+                            e.printStackTrace();
                         }
-                        
-                        connection.addConnectionListener(connectionListener);
-                        connection.addPacketListener(packetListener, packetFilter);
-                        ChatManager chatManager = ChatManager.getInstanceFor(connection);
-                        chatManager.addChatListener(chatManagerListener);
-                        
-                        connection.login(mUser, mPassword);
+                        break;
+                    case QueueMessage.SEND_MESSAGE:
+                        InstantMessage instantMessage = messageQueue.pop();
+                        String uid = mUser + "@" + mServer;
+                        Chat chat;
+                        if (chatMap.containsKey(uid)) {
+                            chat = ChatManager.getInstanceFor(connection).getThreadChat(chatMap.get(uid));
+                        } else {
+                            chat = ChatManager.getInstanceFor(connection).createChat(uid, messageListener);
+                            chatMap.put(uid, chat.getThreadID());
+                        }
 
-                        // TODO: chatManager need to check.
-                    } catch (SmackException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (XMPPException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    
+                        try {
+                            chat.sendMessage(instantMessage.body);
+                        } catch (XMPPException e) {
+                            e.printStackTrace();
+                        } catch (SmackException.NotConnectedException e) {
+                            e.printStackTrace();
+                        }
+                        break;
+                    case QueueMessage.EXIT_THREAD:
+                        exitFlag = true;
+                        break;
+                        
+                    default:
+                        break;
                 }
-                
             } else {
                 try {
                     //Log.d(TAG, "message queue is empty");
+                    // may add interrupt later.
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    Log.d(TAG, "thread interrupted");
                 }
             }
         }
@@ -215,7 +261,8 @@ public class XMPPWrapper implements Runnable{
             msg.from = message.getFrom();
             msg.to = message.getTo();
             msg.body = message.getBody();
-            msg.received_timestamp = System.currentTimeMillis();
+            // may add send_timestamp later.
+            msg.timestamp = System.currentTimeMillis();
             
             if (mCallback!=null) {
                 mCallback.OnMessage(msg);
@@ -225,7 +272,9 @@ public class XMPPWrapper implements Runnable{
     
     
     private class QueueMessage {
-        public final static String CONNECT = "connect";
+        public final static int CONNECT = 0x01;
+        public final static int SEND_MESSAGE = 0x02;
+        public final static int EXIT_THREAD = 0x100;
         
         
     }

@@ -9,12 +9,12 @@ import android.os.Message;
 import android.util.Log;
 
 import org.jivesoftware.smack.SmackAndroid;
+import org.xdty.smalltalk.model.Config;
 import org.xdty.smalltalk.model.InstantMessage;
 import org.xdty.smalltalk.wrapper.ConfigWrapper;
 import org.xdty.smalltalk.wrapper.XMPPWrapper;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayDeque;
 
 public class SmallTalkService extends Service implements 
         XMPPWrapper.Callback {
@@ -98,8 +98,23 @@ public class SmallTalkService extends Service implements
         }
     }
     
+    public String getUser() {
+        String user = ConfigWrapper.Instance().getString(Config.USERNAME);
+        String server = ConfigWrapper.Instance().getString(Config.SERVER_URI);
+        
+        return user+"@"+server;
+    }
+    
     public void isConnected() {
 
+        
+    }
+    
+    public void sendMessage(String message) {
+
+        InstantMessage instantMessage = new InstantMessage();
+        instantMessage.body = message;
+        XMPPWrapper.Instance().sendMessage(instantMessage);
         
     }
     

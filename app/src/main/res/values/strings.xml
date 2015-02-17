@@ -6,5 +6,6 @@
     <string name="action_settings">Settings</string>
     <string name="title">Title</string>
     <string name="message_hint">Messaging...</string>
+    <string name="empty_message">message is empty.</string>
 
 </resources>

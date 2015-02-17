@@ -28,26 +28,26 @@
         android:orientation="horizontal"
         android:layout_gravity="bottom">
         <RelativeLayout
-            android:id="@+id/relSendMessage"
+            android:id="@+id/send_message_layout"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:background="@android:color/darker_gray"
             android:paddingLeft="10dp">
             <EditText
-                android:id="@+id/messageBodyField"
+                android:id="@+id/message_body"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:hint="@string/message_hint"
                 android:textSize="14sp"
                 android:textColor="@android:color/black"
                 android:layout_marginRight="10dp"
-                android:layout_alignTop="@+id/sendButton"
+                android:layout_alignTop="@+id/send_button"
                 android:background="@android:color/white"
-                android:layout_alignBottom="@+id/sendButton"
-                android:layout_toLeftOf="@+id/sendButton"/>
+                android:layout_alignBottom="@+id/send_button"
+                android:layout_toLeftOf="@+id/send_button"/>
 
             <Button
-                android:id="@+id/sendButton"
+                android:id="@+id/send_button"
                 android:layout_width="72dp"
                 android:layout_height="match_parent"
                 android:layout_alignParentRight="true"

@@ -5,4 +5,5 @@
     <string name="hello_world">你好 世界！</string>
     <string name="title">标题</string>
     <string name="message_hint">发送消息...</string>
+    <string name="empty_message">消息为空</string>
 </resources>

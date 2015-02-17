@@ -7,7 +7,10 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.xdty.smalltalk.R;
 import org.xdty.smalltalk.activity.SmallTalkActivity;
@@ -15,7 +18,6 @@ import org.xdty.smalltalk.adapter.MessageAdapter;
 import org.xdty.smalltalk.model.Error;
 import org.xdty.smalltalk.model.InstantMessage;
 import org.xdty.smalltalk.service.SmallTalkService;
-import org.xdty.smalltalk.wrapper.XMPPWrapper;
 
 import java.util.ArrayList;
 
@@ -35,6 +37,11 @@ public class MessageFragment extends Fragment implements
     private ArrayList<InstantMessage> messageList;
     
     private SmallTalkService smallTalkService;
+    
+    private EditText messageText;
+    
+    private Button sendButton;
+    
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -48,6 +55,16 @@ public class MessageFragment extends Fragment implements
                 R.layout.message_left, R.layout.message_right, messageList);
         listView = (ListView) view.findViewById(R.id.message_list);
         listView.setAdapter(messageAdapter);
+        
+        messageText = (EditText) view.findViewById(R.id.message_body);
+        sendButton = (Button) view.findViewById(R.id.send_button);
+        
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                (new MessageTask()).execute(MessageTask.SEND_MESSAGE);
+            }
+        });
         
         (new MessageTask()).execute(MessageTask.REGISTER_CALLBACK);
         
@@ -84,15 +101,21 @@ public class MessageFragment extends Fragment implements
         }
     }
     
-    private class MessageTask extends AsyncTask<String, Void, String> {
+    private class MessageTask extends AsyncTask<Integer, Void, Integer> {
         
-        public final static String REGISTER_CALLBACK = "register_callback";
+        public final static int REGISTER_CALLBACK = 0x01;
+        
+        public final static int SEND_MESSAGE = 0x02;
+        
+        private final static int EMPTY_MESSAGE = 0x03;
 
         private final static int MAX_COUNT = 30;
 
         @Override
-        protected String doInBackground(String... params) {
+        protected Integer doInBackground(Integer... params) {
 
+            int result = 0;
+            
             int count = 0;
             while (smallTalkService==null && count <= MAX_COUNT) {
                 smallTalkService = ((SmallTalkActivity)getActivity()).getService();
@@ -106,12 +129,50 @@ public class MessageFragment extends Fragment implements
             if (count>=MAX_COUNT) {
                 throw new RuntimeException(Error.BIND_SERVICE_TIMEOUT);
             }
+
+            result = params[0];
             
-            if (params[0].equalsIgnoreCase(REGISTER_CALLBACK)) {
-                smallTalkService.setMessageCallback(MessageFragment.this);
+            switch (params[0]) {
+                case REGISTER_CALLBACK:
+                    if (smallTalkService!=null)
+                        smallTalkService.setMessageCallback(MessageFragment.this);
+                    break;
+                case SEND_MESSAGE:
+                    // TODO: build and send xmpp message.
+                    String message = messageText.getText().toString();
+                    if (message.isEmpty()) {
+                        result = EMPTY_MESSAGE;
+                    } else {
+                        if (smallTalkService!=null) {
+                            smallTalkService.sendMessage(message);
+                            InstantMessage instantMessage = new InstantMessage();
+                            instantMessage.body = message;
+                            instantMessage.from = smallTalkService.getUser();
+                            instantMessage.timestamp = System.currentTimeMillis();
+                            instantMessage.isSent = true;
+                            messageList.add(instantMessage);
+                        }
+                    }
+                    break;
+                default:
+                    break;
             }
-            
-            return null;
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(Integer result) {
+            switch (result) {
+                case EMPTY_MESSAGE:
+                    Toast.makeText(getActivity(), R.string.empty_message,Toast.LENGTH_SHORT).show();
+                    break;
+                case SEND_MESSAGE:
+                    messageText.setText("");
+                    messageAdapter.notifyDataSetChanged();
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

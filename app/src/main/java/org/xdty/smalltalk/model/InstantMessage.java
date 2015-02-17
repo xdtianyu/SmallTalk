@@ -8,6 +8,5 @@ public class InstantMessage {
     public String to;
     public String body;
     public long timestamp;
-    public long received_timestamp;
     public boolean isSent = false;
 }
