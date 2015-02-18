@@ -42,10 +42,6 @@ public class SmallTalkActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // start main service
-        Intent intent = new Intent(SmallTalkActivity.this, SmallTalkService.class);
-        startService(intent);
-
         IntentFilter filter = new IntentFilter();
         filter.addAction(FINISH_FILTER);
 

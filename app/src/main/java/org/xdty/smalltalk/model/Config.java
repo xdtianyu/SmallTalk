@@ -23,4 +23,6 @@ public class Config {
     
     public final static String CRASH_RECEIVER = "crash.helper@gmail.com,crash@xdty.org";
     
+    public final static String LOGIN_URI = "http://www.xdty.org:50000/login";
+    
 }

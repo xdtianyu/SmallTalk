@@ -4,10 +4,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.xdty.smalltalk.model.Config;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
@@ -35,12 +39,19 @@ public class HttpWrapper implements Runnable {
     
     private final static int REPORT_CRASH_SUCCEED_MSG = 0x02;
     
+    private final static int LOGIN_MSG = 0x03;
+    
+    private final static int LOGIN_SUCCEED_MSG = 0x04;
+    
+    private final static int LOGIN_FAILED_MSG = 0x05;
+    
     private static HttpWrapper mInstance;
     
     private ArrayDeque<HttpUri> queue;
 
     private ReportCrashCallback reportCrashCallback;
-    
+    private LoginCallback loginCallback;
+
     private HttpHandler httpHandler;
     
     Thread thread;
@@ -70,6 +81,19 @@ public class HttpWrapper implements Runnable {
         uri.params.add(new AbstractMap.SimpleEntry<>("name", "SmallTalk"));
         uri.params.add(new AbstractMap.SimpleEntry<>("email", Config.CRASH_RECEIVER));
         uri.params.add(new AbstractMap.SimpleEntry<>("extra", message));
+
+        queue.addLast(uri);
+        thread.interrupt();
+    }
+    
+    public void login(String username, String password) {
+
+        HttpUri uri = new HttpUri();
+        uri.type = LOGIN_MSG;
+        uri.url = Config.LOGIN_URI;
+
+        uri.params.add(new AbstractMap.SimpleEntry<>("username", username));
+        uri.params.add(new AbstractMap.SimpleEntry<>("password", password));
 
         queue.addLast(uri);
         thread.interrupt();
@@ -106,10 +130,38 @@ public class HttpWrapper implements Runnable {
                     switch (response) {
                         case HttpURLConnection.HTTP_OK:
                             Log.d(TAG, "http response ok");
+
+                            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                            StringBuilder stringBuilder = new StringBuilder();
+                            String line;
+                            while ((line = br.readLine()) != null) {
+                                stringBuilder.append(line+"\n");
+                            }
+                            br.close();
+                            
+                            String json = stringBuilder.toString();
+                            
+                            Log.d(TAG, json);
                             
                             switch (uri.type) {
                                 case REPORT_CRASH_MSG:
                                     Message.obtain(httpHandler, REPORT_CRASH_SUCCEED_MSG).sendToTarget();
+                                    break;
+                                case LOGIN_MSG:
+                                    // TODO: parse result.
+
+                                    JSONObject jsonObject = new JSONObject(json);
+                                    String result = jsonObject.getString("result");
+                                    String message = jsonObject.getString("message");
+                                    
+                                    if (result.equalsIgnoreCase("succeed")) {
+                                        Message.obtain(httpHandler, LOGIN_SUCCEED_MSG, message).sendToTarget();
+                                    } else if (result.equalsIgnoreCase("failed")){
+                                        Message.obtain(httpHandler, LOGIN_FAILED_MSG, message).sendToTarget();
+                                    } else {
+                                        Log.e(TAG, "error result");
+                                    }
+
                                     break;
                                 default:
                                     break;
@@ -125,6 +177,8 @@ public class HttpWrapper implements Runnable {
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
                     e.printStackTrace();
                 }
             } else {
@@ -171,6 +225,16 @@ public class HttpWrapper implements Runnable {
         reportCrashCallback = callback;
     }
     
+    public interface LoginCallback {
+        
+        public void onLoginSucceed(String message);
+        public void onLoginFailed(String message);
+        
+    }
+    
+    public void setLoginCallback(LoginCallback callback) {
+        loginCallback = callback;
+    }
     
     private static class HttpHandler extends Handler {
 
@@ -190,6 +254,16 @@ public class HttpWrapper implements Runnable {
                     case REPORT_CRASH_SUCCEED_MSG:
                         if (outer.reportCrashCallback!=null) {
                             outer.reportCrashCallback.onReportSucceed();
+                        }
+                        break;
+                    case LOGIN_SUCCEED_MSG:
+                        if (outer.loginCallback!=null) {
+                            outer.loginCallback.onLoginSucceed((String)msg.obj);
+                        }
+                        break;
+                    case LOGIN_FAILED_MSG:
+                        if (outer.loginCallback!=null) {
+                            outer.loginCallback.onLoginFailed((String)msg.obj);
                         }
                         break;
                     default:

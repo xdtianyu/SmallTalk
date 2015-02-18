@@ -19,4 +19,15 @@
     <string name="button_ignore">Ignore</string>
     <string name="text_report_message">Application will exit after report succeed, please wait a second.</string>
     <string name="report_succeed">Crash report succeed, thanks to your feedback.</string>
+    
+    <!-- login activity -->
+    <string name="prompt_username">Username</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in</string>
+    <string name="action_sign_in_short">Sign in</string>
+
+    <string name="error_invalid_username">This username is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
 </resources>

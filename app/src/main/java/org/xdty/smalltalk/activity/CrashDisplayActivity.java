@@ -1,13 +1,9 @@
 package org.xdty.smalltalk.activity;
 
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -19,15 +15,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.xdty.smalltalk.R;
-import org.xdty.smalltalk.service.SmallTalkService;
 import org.xdty.smalltalk.wrapper.HttpWrapper;
 
 public class CrashDisplayActivity extends BaseActivity implements
         HttpWrapper.ReportCrashCallback {
     
     public final static String TAG = "CrashDisplayActivity";
-    
-    private SmallTalkService smallTalkService;
     
     private Throwable exception;
     
@@ -79,20 +72,6 @@ public class CrashDisplayActivity extends BaseActivity implements
             cause = cause.getCause();
         }
         return cause;
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Intent intent = new Intent(CrashDisplayActivity.this, SmallTalkService.class);
-        bindService(intent, connection, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        unbindService(connection);
-
     }
 
     @Override
@@ -190,15 +169,6 @@ public class CrashDisplayActivity extends BaseActivity implements
         smallTalkService.reportCrash(message);
     }
 
-    private void append(SpannableStringBuilder sb, CharSequence text, Object... spans) {
-        int start = sb.length();
-        sb.append(text);
-        int end = sb.length();
-        for (Object span : spans) {
-            sb.setSpan(span, start, end, Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-        }
-    }
-
     private CharSequence createSpanned(String s, Object... spans) {
         SpannableStringBuilder sb = new SpannableStringBuilder(s);
         for (Object span : spans) {
@@ -206,19 +176,6 @@ public class CrashDisplayActivity extends BaseActivity implements
         }
         return sb;
     }
-
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            SmallTalkService.SmallTalkServiceBinder binder = (SmallTalkService.SmallTalkServiceBinder)service;
-            smallTalkService = binder.getService();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-
-        }
-    };
 
     @Override
     public void onReportSucceed() {

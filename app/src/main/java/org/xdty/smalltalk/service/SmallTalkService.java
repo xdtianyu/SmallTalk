@@ -119,6 +119,12 @@ public class SmallTalkService extends Service implements
         
     }
     
+    public void login(String username, String password) {
+        
+        httpWrapper.login(username, password);
+        
+    }
+    
     public void reportCrash(String message) {
         httpWrapper.reportCrash(message);
     }
