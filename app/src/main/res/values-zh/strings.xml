@@ -13,4 +13,6 @@
     <string name="message_crash_case">异常 <b>\"%1$s\"</b> (由 <b>\"%2$s\"</b>引起) 已被成功捕获!\n</string>
     <string name="text_crash_title">捕获到异常</string>
     <string name="text_send_report_hint">点击 <b>\"报告!\"</b> 提交报告到服务器</string>
+    <string name="report_succeed">错误报告成功，感谢您的反馈。</string>
+    <string name="text_report_message">应用将在报告完成后退出，请稍等。</string>
 </resources>

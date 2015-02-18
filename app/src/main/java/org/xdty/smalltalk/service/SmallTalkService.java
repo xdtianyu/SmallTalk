@@ -29,6 +29,8 @@ public class SmallTalkService extends Service implements
     private MessageCallback messageCallback;
     
     private MessageHandler messageHandler = new MessageHandler(this);
+    
+    private HttpWrapper httpWrapper = HttpWrapper.Instance();
 
     public SmallTalkService() {
 
@@ -106,13 +108,19 @@ public class SmallTalkService extends Service implements
         return user+"@"+server;
     }
     
+    public String getUID() {
+        // TODO: add uid later
+        String user = ConfigWrapper.Instance().getString(Config.USERNAME);
+        return user;
+    }
+    
     public void isConnected() {
 
         
     }
     
     public void reportCrash(String message) {
-        HttpWrapper.Instance().reportCrash(message);
+        httpWrapper.reportCrash(message);
     }
     
     public void sendMessage(String message) {

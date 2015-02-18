@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.text.SpannableStringBuilder;
@@ -13,18 +14,24 @@ import android.text.TextUtils;
 import android.text.style.StyleSpan;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.xdty.smalltalk.R;
 import org.xdty.smalltalk.service.SmallTalkService;
+import org.xdty.smalltalk.wrapper.HttpWrapper;
 
-public class CrashDisplayActivity extends BaseActivity {
+public class CrashDisplayActivity extends BaseActivity implements
+        HttpWrapper.ReportCrashCallback {
     
     public final static String TAG = "CrashDisplayActivity";
     
     private SmallTalkService smallTalkService;
     
     private Throwable exception;
+    
+    private TextView text2;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,11 +43,13 @@ public class CrashDisplayActivity extends BaseActivity {
         Throwable cause = findCause(exception);
         
         setFinishOnTouchOutside(false);
+        
+        HttpWrapper.Instance().setReportCrashCallback(this);
 
 
-// since API 14 one may also use android.app.ApplicationErrorReport.CrashInfo class 
+// since API 14 one may also use android.app.ApplicationErrorReport.CrashInfo class
 //  to easily parse exception details into human readable form, like this:
-//    
+//
 //    CrashInfo crashInfo = new CrashInfo(mException);
 //    String exClassName = crashInfo.exceptionClassName;
 //    String exStackTrace = crashInfo.stackTrace;
@@ -109,9 +118,17 @@ public class CrashDisplayActivity extends BaseActivity {
     }
 
     public void onReportClick(View v) {
-        TextView text2 = (TextView) findViewById(R.id.text2);
+        text2 = (TextView) findViewById(R.id.text2);
+        text2.setText(R.string.text_report_message);
+
+        Button ignoreButton = (Button)findViewById(R.id.button_ignore);
+        Button reportButton = (Button)findViewById(R.id.button_report);
+
+        ignoreButton.setEnabled(false);
+        reportButton.setEnabled(false);
         
         String message = "--------------\nMessage:\n--------------\n\n"+
+                exception.getClass().getSimpleName()+": "+
                 exception.getMessage()+"\n";
 
         StackTraceElement[] elements = exception.getStackTrace();
@@ -127,6 +144,7 @@ public class CrashDisplayActivity extends BaseActivity {
         while (exception.getCause()!=null) {
             exception = exception.getCause();
             message = message + "\n--------------\nCased by:\n--------------\n"+
+                    exception.getClass().getSimpleName()+": "+
                     exception.getMessage();
             stringBuilder = new StringBuilder();
             for (StackTraceElement element:elements) {
@@ -134,8 +152,40 @@ public class CrashDisplayActivity extends BaseActivity {
                 stringBuilder.append("\n");
             }
             message = message + "\n--------------\nStackTrace:\n--------------\n\n"+
-                    stringBuilder.toString()+"\n\n--------------\n";
+                    stringBuilder.toString()+"\n--------------\n";
         }
+        
+        // hardware info
+        stringBuilder = new StringBuilder();
+        stringBuilder.append("Manufacturer: ");
+        stringBuilder.append(Build.MANUFACTURER);
+        stringBuilder.append("\n");
+        stringBuilder.append("Board: ");
+        stringBuilder.append(Build.BOARD);
+        stringBuilder.append("\n");
+        stringBuilder.append("Brand: ");
+        stringBuilder.append(Build.BRAND);
+        stringBuilder.append("\n");
+        stringBuilder.append("Device: ");
+        stringBuilder.append(Build.DEVICE);
+        stringBuilder.append("\n");
+        stringBuilder.append("Display: ");
+        stringBuilder.append(Build.DISPLAY);
+        stringBuilder.append("\n");
+        stringBuilder.append("Model: ");
+        stringBuilder.append(Build.MODEL);
+        stringBuilder.append("\n");
+        stringBuilder.append("Android: ");
+        stringBuilder.append(Build.VERSION.RELEASE);
+        stringBuilder.append("\n");
+        stringBuilder.append("Sdk: ");
+        stringBuilder.append(Build.VERSION.SDK_INT);
+        stringBuilder.append("\n");
+        
+        message = message + "\n--------------\nHardware info:\n--------------\n\n"+
+                stringBuilder.toString()+"\n--------------\n";
+
+        message = message + "UID: "+smallTalkService.getUID()+"\n--------------";
         
         smallTalkService.reportCrash(message);
     }
@@ -170,4 +220,9 @@ public class CrashDisplayActivity extends BaseActivity {
         }
     };
 
+    @Override
+    public void onReportSucceed() {
+        Toast.makeText(this.getApplicationContext(), R.string.report_succeed, Toast.LENGTH_SHORT).show();
+        finishApplication();
+    }
 }
