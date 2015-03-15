@@ -19,7 +19,7 @@ import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.xdty.smalltalk.model.Config;
-import org.xdty.smalltalk.model.InstantMessage;
+import org.xdty.smalltalk.model.database.InstantMessage;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -64,7 +64,7 @@ public class XMPPWrapper implements Runnable{
         mPassword = ConfigWrapper.Instance().getString(Config.PASSWORD);
 
         configuration = new ConnectionConfiguration(mServer);
-        configuration.setSecurityMode(ConnectionConfiguration.SecurityMode.disabled);
+        configuration.setSecurityMode(ConnectionConfiguration.SecurityMode.enabled);
 
         connection = new XMPPTCPConnection(configuration);
         
@@ -156,7 +156,7 @@ public class XMPPWrapper implements Runnable{
                         break;
                     case QueueMessage.SEND_MESSAGE:
                         InstantMessage instantMessage = messageQueue.pop();
-                        String uid = mUser + "@" + mServer;
+                        String uid = instantMessage.mTo;
                         Chat chat;
                         if (chatMap.containsKey(uid)) {
                             chat = ChatManager.getInstanceFor(connection).getThreadChat(chatMap.get(uid));
@@ -166,7 +166,7 @@ public class XMPPWrapper implements Runnable{
                         }
 
                         try {
-                            chat.sendMessage(instantMessage.body);
+                            chat.sendMessage(instantMessage.mBody);
                         } catch (XMPPException e) {
                             e.printStackTrace();
                         } catch (SmackException.NotConnectedException e) {
@@ -258,11 +258,13 @@ public class XMPPWrapper implements Runnable{
             Log.d(TAG, "processMessage: " + message.toString());
             
             InstantMessage msg = new InstantMessage();
-            msg.from = message.getFrom();
-            msg.to = message.getTo();
-            msg.body = message.getBody();
+            msg.mFrom = message.getFrom().substring(0, message.getFrom().lastIndexOf('/'));
+            msg.mTo = message.getTo();
+            msg.mBody = message.getBody();
             // may add send_timestamp later.
-            msg.timestamp = System.currentTimeMillis();
+            msg.mTimestamp = System.currentTimeMillis();
+
+            msg.save();
             
             if (mCallback!=null) {
                 mCallback.OnMessage(msg);

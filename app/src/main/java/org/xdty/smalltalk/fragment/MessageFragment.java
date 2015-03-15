@@ -16,10 +16,12 @@ import org.xdty.smalltalk.R;
 import org.xdty.smalltalk.activity.SmallTalkActivity;
 import org.xdty.smalltalk.adapter.MessageAdapter;
 import org.xdty.smalltalk.model.Error;
-import org.xdty.smalltalk.model.InstantMessage;
+import org.xdty.smalltalk.model.MessageType;
+import org.xdty.smalltalk.model.database.InstantMessage;
 import org.xdty.smalltalk.service.SmallTalkService;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by ty on 15-2-16.
@@ -63,7 +65,7 @@ public class MessageFragment extends Fragment implements
             @Override
             public void onClick(View v) {
                 (new MessageTask()).execute(MessageTask.SEND_MESSAGE);
-                throw new RuntimeException("test");
+//                throw new RuntimeException("test");
             }
         });
         
@@ -137,6 +139,14 @@ public class MessageFragment extends Fragment implements
                 case REGISTER_CALLBACK:
                     if (smallTalkService!=null)
                         smallTalkService.setMessageCallback(MessageFragment.this);
+                    if (messageList.size()==0) {
+                        List<InstantMessage> messages = InstantMessage.listAll(InstantMessage.class);
+                        for (InstantMessage message : messages) {
+                            if (message.mType == MessageType.CHAT) {
+                                messageList.add(message);
+                            }
+                        }
+                    }
                     break;
                 case SEND_MESSAGE:
                     // TODO: build and send xmpp message.
@@ -145,12 +155,14 @@ public class MessageFragment extends Fragment implements
                         result = EMPTY_MESSAGE;
                     } else {
                         if (smallTalkService!=null) {
-                            smallTalkService.sendMessage(message);
                             InstantMessage instantMessage = new InstantMessage();
-                            instantMessage.body = message;
-                            instantMessage.from = smallTalkService.getUser();
-                            instantMessage.timestamp = System.currentTimeMillis();
-                            instantMessage.isSent = true;
+                            instantMessage.mBody = message;
+                            instantMessage.mFrom = smallTalkService.getUser();
+                            instantMessage.mTo = smallTalkService.getTo("10001");
+                            instantMessage.mTimestamp = System.currentTimeMillis();
+                            instantMessage.mIsSent = true;
+                            smallTalkService.sendMessage(instantMessage);
+                            instantMessage.save();
                             messageList.add(instantMessage);
                         }
                     }
@@ -167,6 +179,7 @@ public class MessageFragment extends Fragment implements
                 case EMPTY_MESSAGE:
                     Toast.makeText(getActivity(), R.string.empty_message,Toast.LENGTH_SHORT).show();
                     break;
+                case REGISTER_CALLBACK:
                 case SEND_MESSAGE:
                     messageText.setText("");
                     messageAdapter.notifyDataSetChanged();

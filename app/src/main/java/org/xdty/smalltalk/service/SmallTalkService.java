@@ -10,7 +10,7 @@ import android.util.Log;
 
 import org.jivesoftware.smack.SmackAndroid;
 import org.xdty.smalltalk.model.Config;
-import org.xdty.smalltalk.model.InstantMessage;
+import org.xdty.smalltalk.model.database.InstantMessage;
 import org.xdty.smalltalk.wrapper.ConfigWrapper;
 import org.xdty.smalltalk.wrapper.HttpWrapper;
 import org.xdty.smalltalk.wrapper.XMPPWrapper;
@@ -91,7 +91,7 @@ public class SmallTalkService extends Service implements
 
     @Override
     public void OnMessage(InstantMessage message) {
-        Log.d(TAG, "OnMessage: " + message.body);
+        Log.d(TAG, "OnMessage: " + message.mBody);
         Message.obtain(messageHandler, RECEIVED_MESSAGE_MSG, message).sendToTarget();
     }
 
@@ -106,6 +106,12 @@ public class SmallTalkService extends Service implements
         String server = ConfigWrapper.Instance().getString(Config.SERVER_URI);
         
         return user+"@"+server;
+    }    
+    
+    public String getTo(String to) {
+        String server = ConfigWrapper.Instance().getString(Config.SERVER_URI);
+        
+        return to+"@"+server;
     }
     
     public String getUID() {
@@ -129,12 +135,8 @@ public class SmallTalkService extends Service implements
         httpWrapper.reportCrash(message);
     }
     
-    public void sendMessage(String message) {
-
-        InstantMessage instantMessage = new InstantMessage();
-        instantMessage.body = message;
-        XMPPWrapper.Instance().sendMessage(instantMessage);
-        
+    public void sendMessage(InstantMessage message) {
+        XMPPWrapper.Instance().sendMessage(message);
     }
     
     private Handler mServiceHandler = new Handler() {

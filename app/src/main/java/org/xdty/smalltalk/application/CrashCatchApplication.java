@@ -1,6 +1,5 @@
 package org.xdty.smalltalk.application;
 
-import android.app.Application;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,7 +11,7 @@ import org.xdty.smalltalk.activity.CrashDisplayActivity;
 /**
  * Created by ty on 15-2-17.
  */
-public class CrashCatchApplication extends Application {
+public class CrashCatchApplication extends com.orm.SugarApp {
 
     private static final String LOG_TAG = "CrashCatchApplication";
 
