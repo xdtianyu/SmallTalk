@@ -1,6 +1,6 @@
 ## SmallTalk
 
-Small Talk is an android instant message client.
+Small Talk is an android instant message client. It's still under development.
 
 
 ## Server side example
